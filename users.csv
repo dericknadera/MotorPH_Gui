@@ -1,0 +1,4 @@
+Username,Password,Role
+admin,admin123,Administrator
+hr_user,hr123,HR Manager
+employee,emp123,Employee
