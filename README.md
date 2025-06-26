@@ -1,4 +1,5 @@
 🚗 MotorPH_Gui_App
+
 MotorPH GUI App is a Java Swing-based desktop application designed to manage employee records, salary computation, and user login securely using a Graphical User Interface. It is a GUI implementation of a previously console-based application, developed to enhance user experience, data integrity, and operational efficiency.
 
 📌 Features
