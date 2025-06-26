@@ -80,6 +80,8 @@ Make sure you have a valid employees.csv file in the root directory. You can cre
 
 📌 Author
 Roderick Nadera
+
 🛠 BSIT Marketing Technology |CP2 Output
+
 📚 Mapúa Malayan Digital College
 
