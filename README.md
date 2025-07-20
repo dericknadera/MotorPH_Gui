@@ -31,22 +31,7 @@ Access restricted to authenticated users.
 
 CSV-based credential verification (optional in final version).
 
-📂 File Structure
 
-MotorPH_Gui/
-└── app/
-    └── src/
-        └── main/
-            └── java/
-                └── (default package)
-                    ├── App.java                // Main entry point
-                    ├── Login.java             // Login form
-                    ├── MainDashboard.java     // Employee data dashboard
-                    ├── EmployeeForm.java      // Add employee form
-                    ├── UpdateEmployeeForm.java// Update existing employee
-                    ├── EmployeeCSVReader.java // Handles CSV read/write
-                    ├── EmployeeDetails.java   // Employee data model
-                    └── EmployeeDataBase.java  // (optional local DB manager)
 ⚙️ Technologies Used
 Java 23 (OpenJDK)
 
