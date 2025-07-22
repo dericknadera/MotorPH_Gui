@@ -1,412 +1,362 @@
-package com.example.MotorPH.Gui;
+package com.example.MotorPH.GUI;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
-import java.time.LocalDate;
+import java.util.Map;
 
-public class EmployeeDetails extends JFrame implements ActionListener {
-    private EmployeeCSVReader csvReader;
-    private EmployeeDataBase employee;
-    private EmployeeDataBase.PayrollCalculation payrollCalc;
+public class EmployeeDetails extends JFrame {
+
+    // Simple variables
     private String employeeNumber;
+    private String[] employeeData;
 
-    // Employee detail components
+    // Employee info labels
     private JLabel empNumberLabel;
     private JLabel nameLabel;
     private JLabel birthdayLabel;
     private JLabel addressLabel;
     private JLabel phoneLabel;
     private JLabel sssLabel;
-    private JLabel philHealthLabel;
+    private JLabel philhealthLabel;
     private JLabel tinLabel;
-    private JLabel pagIbigLabel;
+    private JLabel pagibigLabel;
     private JLabel statusLabel;
     private JLabel positionLabel;
     private JLabel supervisorLabel;
     private JLabel basicSalaryLabel;
+    private JLabel riceSubsidyLabel;
+    private JLabel phoneAllowanceLabel;
+    private JLabel clothingAllowanceLabel;
+    private JLabel grossSemiMonthlyLabel;
+    private JLabel hourlyRateLabel;
 
-    // Payroll components
-    private JComboBox<String> monthCombo;
-    private JComboBox<String> yearCombo;
+    // Salary computation controls
+    private JComboBox<String> monthBox;
+    private JComboBox<String> yearBox;
     private JButton computeButton;
     private JButton closeButton;
 
-    // Payroll display labels
-    private JLabel grossPayLabel;
-    private JLabel sssContribLabel;
-    private JLabel philHealthContribLabel;
-    private JLabel pagIbigContribLabel;
-    private JLabel withholdingTaxLabel;
-    private JLabel totalDeductionsLabel;
-    private JLabel netPayLabel;
-
-    private JPanel payrollPanel;
-    private DecimalFormat currencyFormat;
+    // Salary details area
+    private JTextArea salaryDetailsArea;
 
     public EmployeeDetails(String employeeNumber) {
         this.employeeNumber = employeeNumber;
-        this.csvReader = new EmployeeCSVReader();
-        this.currencyFormat = new DecimalFormat("₱#,##0.00");
-
         loadEmployeeData();
-        initializeComponents();
-        setupLayout();
-        setupEventListeners();
-        setWindowProperties();
+        setupWindow();
+        createComponents();
+        arrangeComponents();
+        addButtonActions();
     }
 
+    // Load employee data
     private void loadEmployeeData() {
-        String[] employeeData = csvReader.findEmployee(employeeNumber);
-        if (employeeData != null) {
-            employee = new EmployeeDataBase(employeeData);
+        try {
+            employeeData = EmployeeDatabase.getEmployeeByNumber(employeeNumber);
+            if (employeeData == null) {
+                JOptionPane.showMessageDialog(null, "Employee not found!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error loading employee: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Set up the window
+    private void setupWindow() {
+        if (employeeData != null && employeeData.length > 2) {
+            setTitle("Employee Details - " + employeeData[2] + " " + employeeData[1]);
         } else {
-            JOptionPane.showMessageDialog(null, "Employee not found!", "Error", JOptionPane.ERROR_MESSAGE);
-            dispose();
+            setTitle("Employee Details");
         }
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(600, 500); // Reduced height
+        setLocationRelativeTo(null);
+        setResizable(true); // Allow resizing
     }
 
-    private void initializeComponents() {
-        // Employee detail labels
-        empNumberLabel = createValueLabel(employee.getEmployeeNumber());
-        nameLabel = createValueLabel(employee.getFullName());
-        birthdayLabel = createValueLabel(employee.getBirthday());
-        addressLabel = createValueLabel(employee.getAddress());
-        phoneLabel = createValueLabel(employee.getPhoneNumber());
-        sssLabel = createValueLabel(employee.getSssNumber());
-        philHealthLabel = createValueLabel(employee.getPhilHealthNumber());
-        tinLabel = createValueLabel(employee.getTin());
-        pagIbigLabel = createValueLabel(employee.getPagIbigNumber());
-        statusLabel = createValueLabel(employee.getStatus());
-        positionLabel = createValueLabel(employee.getPosition());
-        supervisorLabel = createValueLabel(employee.getImmediateSupervisor());
-        basicSalaryLabel = createValueLabel(currencyFormat.format(employee.getBasicSalary()));
-
-        // Month and year selection
-        String[] months = {
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-        };
-        monthCombo = new JComboBox<>(months);
-        monthCombo.setFont(new Font("Arial", Font.PLAIN, 12));
-        monthCombo.setSelectedIndex(LocalDate.now().getMonthValue() - 1);
-
-        // Generate year options (current year ± 2 years)
-        int currentYear = LocalDate.now().getYear();
-        String[] years = new String[5];
-        for (int i = 0; i < 5; i++) {
-            years[i] = String.valueOf(currentYear - 2 + i);
+    // Create all components
+    private void createComponents() {
+        if (employeeData == null || employeeData.length < 19) {
+            return;
         }
-        yearCombo = new JComboBox<>(years);
-        yearCombo.setFont(new Font("Arial", Font.PLAIN, 12));
-        yearCombo.setSelectedItem(String.valueOf(currentYear));
 
-        // Buttons
-        computeButton = createButton("Compute Salary", new Color(0, 123, 255));
-        closeButton = createButton("Close", new Color(108, 117, 125));
+        // Create labels with employee data
+        empNumberLabel = new JLabel("Employee #: " + employeeData[0]);
+        nameLabel = new JLabel("Name: " + employeeData[2] + " " + employeeData[1]);
+        birthdayLabel = new JLabel("Birthday: " + employeeData[3]);
+        addressLabel = new JLabel("Address: " + employeeData[4]);
+        phoneLabel = new JLabel("Phone: " + employeeData[5]);
+        sssLabel = new JLabel("SSS #: " + employeeData[6]);
+        philhealthLabel = new JLabel("PhilHealth #: " + employeeData[7]);
+        tinLabel = new JLabel("TIN #: " + employeeData[8]);
+        pagibigLabel = new JLabel("Pag-IBIG #: " + employeeData[9]);
+        statusLabel = new JLabel("Status: " + employeeData[10]);
+        positionLabel = new JLabel("Position: " + employeeData[11]);
+        supervisorLabel = new JLabel("Supervisor: " + employeeData[12]);
+        basicSalaryLabel = new JLabel("Basic Salary: ₱" + employeeData[13]);
+        riceSubsidyLabel = new JLabel("Rice Subsidy: ₱" + employeeData[14]);
+        phoneAllowanceLabel = new JLabel("Phone Allowance: ₱" + employeeData[15]);
+        clothingAllowanceLabel = new JLabel("Clothing Allowance: ₱" + employeeData[16]);
+        grossSemiMonthlyLabel = new JLabel("Gross Semi-monthly: ₱" + employeeData[17]);
+        hourlyRateLabel = new JLabel("Hourly Rate: ₱" + employeeData[18]);
 
-        // Payroll display labels (initially empty)
-        grossPayLabel = createValueLabel("");
-        sssContribLabel = createValueLabel("");
-        philHealthContribLabel = createValueLabel("");
-        pagIbigContribLabel = createValueLabel("");
-        withholdingTaxLabel = createValueLabel("");
-        totalDeductionsLabel = createValueLabel("");
-        netPayLabel = createValueLabel("");
-        netPayLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        netPayLabel.setForeground(new Color(0, 128, 0));
+        // Create month and year selection
+        String[] months = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"};
+        monthBox = new JComboBox<>(months);
+        monthBox.setSelectedIndex(0); // January
+
+        String[] years = {"2024", "2025", "2026"};
+        yearBox = new JComboBox<>(years);
+        yearBox.setSelectedIndex(1); // 2025
+
+        // Create buttons
+        computeButton = new JButton("Compute Salary");
+        closeButton = new JButton("Close");
+
+        // Make buttons look nice
+        computeButton.setBackground(Color.BLUE);
+        computeButton.setForeground(Color.WHITE);
+        closeButton.setBackground(Color.GRAY);
+
+        // Create salary details area
+        salaryDetailsArea = new JTextArea(10, 40);
+        salaryDetailsArea.setEditable(false);
+        salaryDetailsArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        salaryDetailsArea.setText("Select month and year, then click 'Compute Salary' to view salary details.");
     }
 
-    private JLabel createFieldLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Arial", Font.BOLD, 12));
-        label.setForeground(new Color(51, 51, 51));
-        return label;
-    }
-
-    private JLabel createValueLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Arial", Font.PLAIN, 12));
-        label.setForeground(new Color(85, 85, 85));
-        return label;
-    }
-
-    private JButton createButton(String text, Color bgColor) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.BOLD, 12));
-        button.setBackground(bgColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        return button;
-    }
-
-    private void setupLayout() {
+    // Arrange all components with scroll support
+    private void arrangeComponents() {
         setLayout(new BorderLayout());
 
-        // Header panel
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(0, 102, 204));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        // Create main content panel
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(null);
+        contentPanel.setPreferredSize(new Dimension(580, 700)); // Set preferred size for scrolling
 
-        JLabel titleLabel = new JLabel("Employee Details & Payroll");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setForeground(Color.WHITE);
-        headerPanel.add(titleLabel, BorderLayout.CENTER);
+        int y = 20;
 
-        // Main content panel
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
+        // Title
+        JLabel titleLabel = new JLabel("Employee Information");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        titleLabel.setBounds(200, y, 200, 25);
+        contentPanel.add(titleLabel);
+        y += 40;
 
-        // Employee details panel
-        JPanel detailsPanel = createEmployeeDetailsPanel();
+        // Employee details
+        empNumberLabel.setBounds(50, y, 300, 25);
+        contentPanel.add(empNumberLabel);
+        y += 25;
 
-        // Payroll panel
-        payrollPanel = createPayrollPanel();
+        nameLabel.setBounds(50, y, 300, 25);
+        contentPanel.add(nameLabel);
+        y += 25;
 
-        // Split pane
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, detailsPanel, payrollPanel);
-        splitPane.setDividerLocation(400);
-        splitPane.setResizeWeight(0.5);
+        birthdayLabel.setBounds(50, y, 300, 25);
+        contentPanel.add(birthdayLabel);
+        y += 25;
 
-        mainPanel.add(splitPane, BorderLayout.CENTER);
+        addressLabel.setBounds(50, y, 500, 25);
+        contentPanel.add(addressLabel);
+        y += 25;
 
-        // Button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.add(closeButton);
+        phoneLabel.setBounds(50, y, 300, 25);
+        contentPanel.add(phoneLabel);
+        y += 25;
 
-        add(headerPanel, BorderLayout.NORTH);
-        add(mainPanel, BorderLayout.CENTER);
-        add(buttonPanel, BorderLayout.SOUTH);
+        sssLabel.setBounds(50, y, 300, 25);
+        contentPanel.add(sssLabel);
+        y += 25;
+
+        philhealthLabel.setBounds(50, y, 300, 25);
+        contentPanel.add(philhealthLabel);
+        y += 25;
+
+        tinLabel.setBounds(50, y, 300, 25);
+        contentPanel.add(tinLabel);
+        y += 25;
+
+        pagibigLabel.setBounds(50, y, 300, 25);
+        contentPanel.add(pagibigLabel);
+        y += 25;
+
+        statusLabel.setBounds(50, y, 300, 25);
+        contentPanel.add(statusLabel);
+        y += 25;
+
+        positionLabel.setBounds(50, y, 300, 25);
+        contentPanel.add(positionLabel);
+        y += 25;
+
+        supervisorLabel.setBounds(50, y, 300, 25);
+        contentPanel.add(supervisorLabel);
+        y += 30;
+
+        // Salary information section
+        JLabel salaryTitle = new JLabel("Salary Information");
+        salaryTitle.setFont(new Font("Arial", Font.BOLD, 14));
+        salaryTitle.setBounds(50, y, 200, 25);
+        contentPanel.add(salaryTitle);
+        y += 30;
+
+        basicSalaryLabel.setBounds(50, y, 250, 25);
+        contentPanel.add(basicSalaryLabel);
+        y += 25;
+
+        riceSubsidyLabel.setBounds(50, y, 250, 25);
+        contentPanel.add(riceSubsidyLabel);
+        y += 25;
+
+        phoneAllowanceLabel.setBounds(50, y, 250, 25);
+        contentPanel.add(phoneAllowanceLabel);
+        y += 25;
+
+        clothingAllowanceLabel.setBounds(50, y, 250, 25);
+        contentPanel.add(clothingAllowanceLabel);
+        y += 25;
+
+        grossSemiMonthlyLabel.setBounds(50, y, 250, 25);
+        contentPanel.add(grossSemiMonthlyLabel);
+        y += 25;
+
+        hourlyRateLabel.setBounds(50, y, 250, 25);
+        contentPanel.add(hourlyRateLabel);
+        y += 40;
+
+        // Salary computation section
+        JLabel computeTitle = new JLabel("Compute Monthly Salary");
+        computeTitle.setFont(new Font("Arial", Font.BOLD, 14));
+        computeTitle.setBounds(50, y, 200, 25);
+        contentPanel.add(computeTitle);
+        y += 30;
+
+        JLabel monthLabel = new JLabel("Month:");
+        monthLabel.setBounds(50, y, 80, 25);
+        contentPanel.add(monthLabel);
+        monthBox.setBounds(130, y, 80, 25);
+        contentPanel.add(monthBox);
+
+        JLabel yearLabel = new JLabel("Year:");
+        yearLabel.setBounds(220, y, 50, 25);
+        contentPanel.add(yearLabel);
+        yearBox.setBounds(270, y, 80, 25);
+        contentPanel.add(yearBox);
+
+        computeButton.setBounds(360, y, 120, 25);
+        contentPanel.add(computeButton);
+        y += 40;
+
+        // Salary details area
+        JLabel detailsTitle = new JLabel("Salary Computation Details");
+        detailsTitle.setFont(new Font("Arial", Font.BOLD, 14));
+        detailsTitle.setBounds(50, y, 200, 25);
+        contentPanel.add(detailsTitle);
+        y += 30;
+
+        JScrollPane scrollPane = new JScrollPane(salaryDetailsArea);
+        scrollPane.setBounds(50, y, 500, 150); // Smaller height
+        contentPanel.add(scrollPane);
+        y += 170;
+
+        // Close button
+        closeButton.setBounds(250, y, 100, 30);
+        contentPanel.add(closeButton);
+
+        // Add content panel to a scroll pane
+        JScrollPane mainScrollPane = new JScrollPane(contentPanel);
+        mainScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        mainScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        add(mainScrollPane, BorderLayout.CENTER);
     }
 
-    private JPanel createEmployeeDetailsPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY),
-                "Employee Information"));
+    // Add button actions
+    private void addButtonActions() {
+        computeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                computeSalary();
+            }
+        });
 
-        JPanel fieldsPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 10, 8, 10);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        // Employee basic info
-        addDetailRow(fieldsPanel, gbc, 0, "Employee Number:", empNumberLabel);
-        addDetailRow(fieldsPanel, gbc, 1, "Full Name:", nameLabel);
-        addDetailRow(fieldsPanel, gbc, 2, "Birthday:", birthdayLabel);
-        addDetailRow(fieldsPanel, gbc, 3, "Phone Number:", phoneLabel);
-
-        // Address (spans multiple columns)
-        gbc.gridx = 0; gbc.gridy = 4;
-        fieldsPanel.add(createFieldLabel("Address:"), gbc);
-        gbc.gridx = 1; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        fieldsPanel.add(addressLabel, gbc);
-
-        // Government numbers
-        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE;
-        addDetailRow(fieldsPanel, gbc, 5, "SSS Number:", sssLabel);
-        addDetailRow(fieldsPanel, gbc, 6, "PhilHealth Number:", philHealthLabel);
-        addDetailRow(fieldsPanel, gbc, 7, "TIN:", tinLabel);
-        addDetailRow(fieldsPanel, gbc, 8, "Pag-IBIG Number:", pagIbigLabel);
-
-        // Employment details
-        addDetailRow(fieldsPanel, gbc, 9, "Status:", statusLabel);
-        addDetailRow(fieldsPanel, gbc, 10, "Position:", positionLabel);
-        addDetailRow(fieldsPanel, gbc, 11, "Supervisor:", supervisorLabel);
-        addDetailRow(fieldsPanel, gbc, 12, "Basic Salary:", basicSalaryLabel);
-
-        panel.add(fieldsPanel, BorderLayout.CENTER);
-        return panel;
+        closeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
     }
 
-    private void addDetailRow(JPanel parent, GridBagConstraints gbc, int row, String label, JLabel value) {
-        gbc.gridx = 0; gbc.gridy = row;
-        parent.add(createFieldLabel(label), gbc);
-        gbc.gridx = 1;
-        parent.add(value, gbc);
-    }
-
-    private JPanel createPayrollPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY),
-                "Payroll Computation"));
-
-        // Month/Year selection panel
-        JPanel selectionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        selectionPanel.add(new JLabel("Select Month:"));
-        selectionPanel.add(monthCombo);
-        selectionPanel.add(Box.createHorizontalStrut(10));
-        selectionPanel.add(new JLabel("Year:"));
-        selectionPanel.add(yearCombo);
-        selectionPanel.add(Box.createHorizontalStrut(10));
-        selectionPanel.add(computeButton);
-
-        // Payroll details panel
-        JPanel payrollDetailsPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 10, 8, 10);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        // Create payroll display fields
-        addPayrollRow(payrollDetailsPanel, gbc, 0, "Gross Pay:", grossPayLabel);
-
-        // Add separator
-        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        payrollDetailsPanel.add(new JSeparator(), gbc);
-
-        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE;
-        addPayrollRow(payrollDetailsPanel, gbc, 2, "SSS Contribution:", sssContribLabel);
-        addPayrollRow(payrollDetailsPanel, gbc, 3, "PhilHealth Contribution:", philHealthContribLabel);
-        addPayrollRow(payrollDetailsPanel, gbc, 4, "Pag-IBIG Contribution:", pagIbigContribLabel);
-        addPayrollRow(payrollDetailsPanel, gbc, 5, "Withholding Tax:", withholdingTaxLabel);
-
-        // Add separator
-        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        payrollDetailsPanel.add(new JSeparator(), gbc);
-
-        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE;
-        addPayrollRow(payrollDetailsPanel, gbc, 7, "Total Deductions:", totalDeductionsLabel);
-
-        // Add separator
-        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        payrollDetailsPanel.add(new JSeparator(), gbc);
-
-        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE;
-        addPayrollRow(payrollDetailsPanel, gbc, 9, "NET PAY:", netPayLabel);
-
-        // Instructions panel
-        JPanel instructionsPanel = new JPanel(new BorderLayout());
-        instructionsPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-
-        JTextArea instructionsText = new JTextArea(
-                "Instructions:\n" +
-                        "1. Select the month and year for payroll computation\n" +
-                        "2. Click 'Compute Salary' to calculate the employee's pay\n" +
-                        "3. The system will display gross pay, deductions, and net pay"
-        );
-        instructionsText.setFont(new Font("Arial", Font.ITALIC, 11));
-        instructionsText.setBackground(panel.getBackground());
-        instructionsText.setEditable(false);
-        instructionsText.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        instructionsPanel.add(instructionsText, BorderLayout.CENTER);
-
-        panel.add(selectionPanel, BorderLayout.NORTH);
-        panel.add(payrollDetailsPanel, BorderLayout.CENTER);
-        panel.add(instructionsPanel, BorderLayout.SOUTH);
-
-        return panel;
-    }
-
-    private void addPayrollRow(JPanel parent, GridBagConstraints gbc, int row, String label, JLabel value) {
-        gbc.gridx = 0; gbc.gridy = row;
-        JLabel fieldLabel = createFieldLabel(label);
-        if (label.contains("NET PAY")) {
-            fieldLabel.setFont(new Font("Arial", Font.BOLD, 14));
-            fieldLabel.setForeground(new Color(0, 128, 0));
-        }
-        parent.add(fieldLabel, gbc);
-        gbc.gridx = 1;
-        parent.add(value, gbc);
-    }
-
-    private void setupEventListeners() {
-        computeButton.addActionListener(this);
-        closeButton.addActionListener(this);
-    }
-
-    private void setWindowProperties() {
-        setTitle("Employee Details - " + employee.getFullName());
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(900, 700);
-        setLocationRelativeTo(null);
-        setMinimumSize(new Dimension(800, 600));
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == computeButton) {
-            computePayroll();
-        } else if (e.getSource() == closeButton) {
-            dispose();
-        }
-    }
-
-    private void computePayroll() {
+    // Compute salary for selected month
+    private void computeSalary() {
         try {
-            int selectedMonth = monthCombo.getSelectedIndex() + 1; // Convert to 1-12
-            int selectedYear = Integer.parseInt((String) yearCombo.getSelectedItem());
+            String selectedMonth = (String) monthBox.getSelectedItem();
+            String selectedYear = (String) yearBox.getSelectedItem();
 
-            // Validate month and year
-            EmployeeDataBase.validateMonth(String.valueOf(selectedMonth));
+            if (selectedMonth == null || selectedYear == null) {
+                JOptionPane.showMessageDialog(this, "Please select month and year!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
-            // Calculate payroll
-            payrollCalc = employee.calculatePay(selectedMonth, selectedYear);
+            // Show loading message
+            salaryDetailsArea.setText("Computing salary for " + getMonthName(selectedMonth) + " " + selectedYear + "...");
 
-            // Update display
-            updatePayrollDisplay();
+            // Calculate salary
+            Map<String, Object> salaryDetails = EmployeeDatabase.calculateSalary(employeeNumber, selectedMonth, selectedYear);
 
-            // Show success message
-            String monthName = (String) monthCombo.getSelectedItem();
-            JOptionPane.showMessageDialog(this,
-                    String.format("Payroll computed successfully for %s %d!", monthName, selectedYear),
-                    "Computation Complete", JOptionPane.INFORMATION_MESSAGE);
+            if (salaryDetails.isEmpty()) {
+                salaryDetailsArea.setText("Error: Could not compute salary. Please check employee data.");
+                return;
+            }
 
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error computing payroll: " + ex.getMessage(),
-                    "Computation Error", JOptionPane.ERROR_MESSAGE);
+            // Format and display salary details
+            StringBuilder details = new StringBuilder();
+            details.append("=== SALARY COMPUTATION FOR ").append(getMonthName(selectedMonth)).append(" ").append(selectedYear).append(" ===\n\n");
+
+            details.append("EMPLOYEE: ").append(employeeData[2]).append(" ").append(employeeData[1]).append("\n");
+            details.append("EMPLOYEE #: ").append(employeeNumber).append("\n");
+            details.append("POSITION: ").append(employeeData[11]).append("\n\n");
+
+            details.append("EARNINGS:\n");
+            details.append("Basic Salary: ₱").append(String.format("%.2f", (Double) salaryDetails.get("basicSalary"))).append("\n");
+            details.append("Regular Hours: ").append(String.format("%.1f", (Double) salaryDetails.get("regularHours"))).append(" hrs\n");
+            details.append("Overtime Hours: ").append(String.format("%.1f", (Double) salaryDetails.get("overtimeHours"))).append(" hrs\n");
+            details.append("Regular Pay: ₱").append(String.format("%.2f", (Double) salaryDetails.get("regularPay"))).append("\n");
+            details.append("Overtime Pay: ₱").append(String.format("%.2f", (Double) salaryDetails.get("overtimePay"))).append("\n");
+            details.append("Rice Subsidy: ₱").append(String.format("%.2f", (Double) salaryDetails.get("riceSubsidy"))).append("\n");
+            details.append("Phone Allowance: ₱").append(String.format("%.2f", (Double) salaryDetails.get("phoneAllowance"))).append("\n");
+            details.append("Clothing Allowance: ₱").append(String.format("%.2f", (Double) salaryDetails.get("clothingAllowance"))).append("\n");
+            details.append("GROSS PAY: ₱").append(String.format("%.2f", (Double) salaryDetails.get("grossPay"))).append("\n\n");
+
+            details.append("DEDUCTIONS:\n");
+            details.append("Withholding Tax (10%): ₱").append(String.format("%.2f", (Double) salaryDetails.get("withholdingTax"))).append("\n");
+            details.append("SSS Contribution (4.5%): ₱").append(String.format("%.2f", (Double) salaryDetails.get("sssContribution"))).append("\n");
+            details.append("PhilHealth (1.75%): ₱").append(String.format("%.2f", (Double) salaryDetails.get("philhealthContribution"))).append("\n");
+            details.append("Pag-IBIG (2%): ₱").append(String.format("%.2f", (Double) salaryDetails.get("pagibigContribution"))).append("\n");
+            details.append("TOTAL DEDUCTIONS: ₱").append(String.format("%.2f", (Double) salaryDetails.get("totalDeductions"))).append("\n\n");
+
+            details.append("NET PAY: ₱").append(String.format("%.2f", (Double) salaryDetails.get("netPay"))).append("\n");
+            details.append("\nTotal Hours Worked: ").append(String.format("%.1f", (Double) salaryDetails.get("totalHoursWorked"))).append(" hours");
+
+            salaryDetailsArea.setText(details.toString());
+
+        } catch (Exception e) {
+            salaryDetailsArea.setText("Error computing salary: " + e.getMessage());
         }
     }
 
-    private void updatePayrollDisplay() {
-        if (payrollCalc != null) {
-            grossPayLabel.setText(currencyFormat.format(payrollCalc.getGrossPay()));
-            sssContribLabel.setText(currencyFormat.format(payrollCalc.getSssContribution()));
-            philHealthContribLabel.setText(currencyFormat.format(payrollCalc.getPhilHealthContribution()));
-            pagIbigContribLabel.setText(currencyFormat.format(payrollCalc.getPagIbigContribution()));
-            withholdingTaxLabel.setText(currencyFormat.format(payrollCalc.getWithholdingTax()));
-            totalDeductionsLabel.setText(currencyFormat.format(payrollCalc.getTotalDeductions()));
-            netPayLabel.setText(currencyFormat.format(payrollCalc.getNetPay()));
-
-            // Change colors based on values
-            netPayLabel.setForeground(payrollCalc.getNetPay() > 0 ? new Color(0, 128, 0) : Color.RED);
-            totalDeductionsLabel.setForeground(new Color(204, 0, 0));
+    // Get month name
+    private String getMonthName(String monthNumber) {
+        String[] monthNames = {"", "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"};
+        try {
+            int month = Integer.parseInt(monthNumber);
+            if (month >= 1 && month <= 12) {
+                return monthNames[month];
+            }
+        } catch (Exception e) {
+            // ignore
         }
-    }
-
-    // Method to refresh employee data (useful if called from other windows)
-    public void refreshEmployeeData() {
-        loadEmployeeData();
-
-        // Update labels
-        empNumberLabel.setText(employee.getEmployeeNumber());
-        nameLabel.setText(employee.getFullName());
-        birthdayLabel.setText(employee.getBirthday());
-        addressLabel.setText(employee.getAddress());
-        phoneLabel.setText(employee.getPhoneNumber());
-        sssLabel.setText(employee.getSssNumber());
-        philHealthLabel.setText(employee.getPhilHealthNumber());
-        tinLabel.setText(employee.getTin());
-        pagIbigLabel.setText(employee.getPagIbigNumber());
-        statusLabel.setText(employee.getStatus());
-        positionLabel.setText(employee.getPosition());
-        supervisorLabel.setText(employee.getImmediateSupervisor());
-        basicSalaryLabel.setText(currencyFormat.format(employee.getBasicSalary()));
-
-        setTitle("Employee Details - " + employee.getFullName());
-
-        // Clear payroll display
-        grossPayLabel.setText("");
-        sssContribLabel.setText("");
-        philHealthContribLabel.setText("");
-        pagIbigContribLabel.setText("");
-        withholdingTaxLabel.setText("");
-        totalDeductionsLabel.setText("");
-        netPayLabel.setText("");
+        return "Month " + monthNumber;
     }
 }
-
-
