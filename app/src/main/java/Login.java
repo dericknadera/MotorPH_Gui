@@ -1,240 +1,275 @@
-package com.example.MotorPH.Gui;
+package com.example.MotorPH.GUI;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 
-public class Login extends JFrame implements ActionListener, KeyListener {
-    private JTextField usernameField;
-    private JPasswordField passwordField;
+public class Login extends JFrame {
+
+    // Simple variables
+    private JTextField usernameBox;
+    private JPasswordField passwordBox;
     private JButton loginButton;
-    private JButton clearButton;
-    private JButton exitButton;
-    private EmployeeCSVReader csvReader;
-    private JLabel statusLabel;
-    private int loginAttempts = 0;
-    private final int MAX_ATTEMPTS = 3;
+    private JButton cancelButton;
+    private JLabel messageLabel;
+    private int tries = 0;
+    private final int MAX_TRIES = 3;
 
     public Login() {
-        csvReader = new EmployeeCSVReader();
-        initializeComponents();
-        setupLayout();
-        setupEventListeners();
-        setWindowProperties();
+        setupWindow();
+        createComponents();
+        arrangeComponents();
+        addButtonActions();
+        checkFiles();
     }
 
-    private void initializeComponents() {
-        // Create components
-        JLabel titleLabel = new JLabel("MotorPH Employee System", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setForeground(new Color(0, 102, 204));
+    // Set up the main window
+    private void setupWindow() {
+        setTitle("MotorPH Payroll System - Login");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(450, 400); // Made taller to fit all elements
+        setLocationRelativeTo(null);
+        setResizable(false);
 
-        JLabel usernameLabel = new JLabel("Username:");
-        usernameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        // Set application icon if available
+        try {
+            setIconImage(Toolkit.getDefaultToolkit().getImage("icon.png"));
+        } catch (Exception e) {
+            // Ignore if icon not found
+        }
+    }
 
-        JLabel passwordLabel = new JLabel("Password:");
-        passwordLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-
-        usernameField = new JTextField(20);
-        usernameField.setFont(new Font("Arial", Font.PLAIN, 14));
-        usernameField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.GRAY),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)
-        ));
-
-        passwordField = new JPasswordField(20);
-        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
-        passwordField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.GRAY),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)
-        ));
-
+    // Create all the parts we need
+    private void createComponents() {
+        usernameBox = new JTextField(20);
+        passwordBox = new JPasswordField(20);
         loginButton = new JButton("Login");
-        loginButton.setFont(new Font("Arial", Font.BOLD, 14));
-        loginButton.setBackground(new Color(0, 153, 76));
+        cancelButton = new JButton("Cancel");
+        messageLabel = new JLabel(" ");
+
+        // Make buttons look nice and visible
+        loginButton.setBackground(Color.BLUE);
         loginButton.setForeground(Color.WHITE);
-        loginButton.setFocusPainted(false);
-        loginButton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        loginButton.setFont(new Font("Arial", Font.BOLD, 12));
+        loginButton.setOpaque(true);
+        loginButton.setBorderPainted(false);
 
-        clearButton = new JButton("Clear");
-        clearButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        clearButton.setBackground(new Color(255, 153, 0));
-        clearButton.setForeground(Color.WHITE);
-        clearButton.setFocusPainted(false);
-        clearButton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        cancelButton.setBackground(Color.GRAY);
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setOpaque(true);
+        cancelButton.setBorderPainted(false);
 
-        exitButton = new JButton("Exit");
-        exitButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        exitButton.setBackground(new Color(204, 0, 0));
-        exitButton.setForeground(Color.WHITE);
-        exitButton.setFocusPainted(false);
-        exitButton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        messageLabel.setForeground(Color.RED);
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        statusLabel = new JLabel(" ", SwingConstants.CENTER);
-        statusLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-        statusLabel.setForeground(Color.RED);
+        // Add tooltips
+        usernameBox.setToolTipText("Enter your username");
+        passwordBox.setToolTipText("Enter your password");
+        loginButton.setToolTipText("Click to login or press Enter");
+        cancelButton.setToolTipText("Exit the application");
+    }
 
-        // Add components to frame
-        setLayout(new BorderLayout());
+    // Put everything in the right place
+    private void arrangeComponents() {
+        setLayout(null); // Simple positioning
 
-        // Header panel
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(Color.WHITE);
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
-        headerPanel.add(titleLabel, BorderLayout.CENTER);
+        // Title
+        JLabel titleLabel = new JLabel("MotorPH Payroll System");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        titleLabel.setForeground(Color.DARK_GRAY);
+        titleLabel.setBounds(90, 30, 280, 30);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        add(titleLabel);
 
-        // Center panel with form
-        JPanel centerPanel = new JPanel(new GridBagLayout());
-        centerPanel.setBackground(Color.WHITE);
-        centerPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        // Subtitle
+        JLabel subtitleLabel = new JLabel("Employee Management System");
+        subtitleLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        subtitleLabel.setForeground(Color.GRAY);
+        subtitleLabel.setBounds(90, 55, 280, 20);
+        subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        add(subtitleLabel);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        // Login panel
+        JPanel loginPanel = new JPanel();
+        loginPanel.setBorder(BorderFactory.createTitledBorder("Please Login"));
+        loginPanel.setBounds(50, 90, 350, 120);
+        loginPanel.setLayout(null);
 
         // Username
-        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.EAST;
-        centerPanel.add(usernameLabel, gbc);
-        gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-        centerPanel.add(usernameField, gbc);
+        JLabel userLabel = new JLabel("Username:");
+        userLabel.setBounds(20, 30, 80, 25);
+        loginPanel.add(userLabel);
+
+        usernameBox.setBounds(100, 30, 200, 25);
+        loginPanel.add(usernameBox);
 
         // Password
-        gbc.gridx = 0; gbc.gridy = 1; gbc.anchor = GridBagConstraints.EAST;
-        centerPanel.add(passwordLabel, gbc);
-        gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-        centerPanel.add(passwordField, gbc);
+        JLabel passLabel = new JLabel("Password:");
+        passLabel.setBounds(20, 60, 80, 25);
+        loginPanel.add(passLabel);
 
-        // Status label
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
-        centerPanel.add(statusLabel, gbc);
+        passwordBox.setBounds(100, 60, 200, 25);
+        loginPanel.add(passwordBox);
 
-        // Button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        buttonPanel.setBackground(Color.WHITE);
-        buttonPanel.add(loginButton);
-        buttonPanel.add(clearButton);
-        buttonPanel.add(exitButton);
+        add(loginPanel);
 
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
-        centerPanel.add(buttonPanel, gbc);
+        // Message
+        messageLabel.setBounds(50, 220, 350, 25);
+        add(messageLabel);
 
-        // Instructions panel
-        JPanel instructionsPanel = new JPanel(new BorderLayout());
-        instructionsPanel.setBackground(new Color(240, 248, 255));
-        instructionsPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(176, 196, 222)),
-                BorderFactory.createEmptyBorder(15, 15, 15, 15)
-        ));
+        // Buttons
+        loginButton.setBounds(150, 250, 80, 35);
+        add(loginButton);
 
-        JLabel instructionsTitle = new JLabel("Sample Login Credentials:", SwingConstants.LEFT);
-        instructionsTitle.setFont(new Font("Arial", Font.BOLD, 12));
+        cancelButton.setBounds(240, 250, 80, 35);
+        add(cancelButton);
 
-        JTextArea instructionsText = new JTextArea(
-                "Username: admin    Password: admin123\n" +
-                        "Username: hr_user  Password: hr123\n" +
-                        "Username: employee Password: emp123"
-        );
-        instructionsText.setFont(new Font("Courier", Font.PLAIN, 11));
-        instructionsText.setBackground(new Color(240, 248, 255));
-        instructionsText.setEditable(false);
-        instructionsText.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
+        // Info panel - moved down and made more visible
+        JPanel infoPanel = new JPanel();
+        infoPanel.setBorder(BorderFactory.createTitledBorder("Test Accounts"));
+        infoPanel.setBounds(50, 300, 350, 50); // Moved down and made taller
+        infoPanel.setLayout(new FlowLayout());
+        infoPanel.setBackground(Color.LIGHT_GRAY); // Added background color
 
-        instructionsPanel.add(instructionsTitle, BorderLayout.NORTH);
-        instructionsPanel.add(instructionsText, BorderLayout.CENTER);
+        JLabel infoLabel = new JLabel("<html><center>admin/admin123, hr/hr123, manager/manager123</center></html>");
+        infoLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+        infoLabel.setForeground(Color.DARK_GRAY);
+        infoPanel.add(infoLabel);
 
-        // Add all panels to frame
-        add(headerPanel, BorderLayout.NORTH);
-        add(centerPanel, BorderLayout.CENTER);
-        add(instructionsPanel, BorderLayout.SOUTH);
+        add(infoPanel);
     }
 
-    private void setupLayout() {
-        // Layout is already set up in initializeComponents
+    // Make buttons do things when clicked
+    private void addButtonActions() {
+        loginButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                performLogin();
+            }
+        });
+
+        cancelButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                exitApplication();
+            }
+        });
+
+        // Press Enter to login
+        passwordBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                performLogin();
+            }
+        });
+
+        usernameBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                passwordBox.requestFocus();
+            }
+        });
     }
 
-    private void setupEventListeners() {
-        loginButton.addActionListener(this);
-        clearButton.addActionListener(this);
-        exitButton.addActionListener(this);
-
-        usernameField.addKeyListener(this);
-        passwordField.addKeyListener(this);
-
-        // Set default button
-        getRootPane().setDefaultButton(loginButton);
-    }
-
-    private void setWindowProperties() {
-        setTitle("MotorPH Employee System - Login");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
-        pack();
-        setLocationRelativeTo(null); // Center on screen
-
-        // Set minimum size
-        Dimension minSize = new Dimension(500, 400);
-        setMinimumSize(minSize);
-
-        // Focus on username field
-        SwingUtilities.invokeLater(() -> usernameField.requestFocus());
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == loginButton) {
-            performLogin();
-        } else if (e.getSource() == clearButton) {
-            clearFields();
-        } else if (e.getSource() == exitButton) {
-            exitApplication();
-        }
-    }
-
+    // Enhanced login process with better exception handling
     private void performLogin() {
-        String username = usernameField.getText().trim();
-        String password = new String(passwordField.getPassword());
+        try {
+            String username = usernameBox.getText().trim();
+            String password = new String(passwordBox.getPassword());
 
-        // Validate input
-        if (username.isEmpty() || password.isEmpty()) {
-            showStatus("Please enter both username and password.", Color.RED);
-            return;
-        }
+            // Input validation with specific error messages
+            if (username.isEmpty()) {
+                showMessage("Please enter your username!", Color.RED);
+                usernameBox.requestFocus();
+                return;
+            }
 
-        // Disable login button temporarily
-        loginButton.setEnabled(false);
-        showStatus("Authenticating...", Color.BLUE);
+            if (password.isEmpty()) {
+                showMessage("Please enter your password!", Color.RED);
+                passwordBox.requestFocus();
+                return;
+            }
 
-        // Simulate authentication delay
-        Timer timer = new Timer(1000, e -> {
-            boolean isValid = csvReader.validateUser(username, password);
+            // Check attempt limit
+            if (tries >= MAX_TRIES) {
+                showMessage("Maximum login attempts exceeded. Application will close in 3 seconds...", Color.RED);
+                disableLoginControls();
 
-            if (isValid) {
-                showStatus("Login successful! Loading main dashboard...", Color.GREEN);
-
-                // Open main dashboard after a short delay
-                Timer openTimer = new Timer(1500, event -> {
-                    dispose();
-                    SwingUtilities.invokeLater(() -> {
-                        new MainDashboard().setVisible(true);
-                    });
+                Timer timer = new Timer(3000, new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        System.exit(0);
+                    }
                 });
-                openTimer.setRepeats(false);
-                openTimer.start();
+                timer.setRepeats(false);
+                timer.start();
+                return;
+            }
 
+            // Show loading message
+            showMessage("Verifying credentials...", Color.BLUE);
+            loginButton.setEnabled(false);
+
+            // Validate login credentials
+            boolean loginSuccessful = false;
+            String userRole = "";
+
+            try {
+                // First try to validate from CSV file
+                loginSuccessful = EmployeeCSVReader.validateLogin(username, password);
+
+                if (loginSuccessful) {
+                    // Get user role from login file (if available)
+                    userRole = getUserRole(username);
+                }
+
+            } catch (Exception fileException) {
+                System.out.println("CSV login validation failed: " + fileException.getMessage());
+
+                // Fallback to hardcoded credentials
+                if ((username.equals("admin") && password.equals("admin123")) ||
+                        (username.equals("hr") && password.equals("hr123")) ||
+                        (username.equals("manager") && password.equals("manager123"))) {
+                    loginSuccessful = true;
+                    userRole = username.equals("admin") ? "Administrator" :
+                            username.equals("hr") ? "HR Manager" : "Manager";
+                }
+            }
+
+            if (loginSuccessful) {
+                handleSuccessfulLogin(username, userRole);
             } else {
-                loginAttempts++;
-                if (loginAttempts >= MAX_ATTEMPTS) {
-                    showStatus("Maximum login attempts exceeded. Application will close.", Color.RED);
-                    Timer exitTimer = new Timer(2000, event -> System.exit(0));
-                    exitTimer.setRepeats(false);
-                    exitTimer.start();
-                } else {
-                    showStatus(String.format("Invalid credentials. Attempt %d of %d.",
-                            loginAttempts, MAX_ATTEMPTS), Color.RED);
-                    clearFields();
-                    loginButton.setEnabled(true);
+                handleFailedLogin();
+            }
+
+        } catch (Exception e) {
+            handleLoginException(e);
+        }
+    }
+
+    // Handle successful login
+    private void handleSuccessfulLogin(String username, String userRole) {
+        showMessage("Login successful! Welcome " + username + "!", Color.GREEN);
+
+        Timer timer = new Timer(1000, new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    dispose(); // Close login window
+
+                    // Show welcome message
+                    String welcomeMessage = "Welcome to MotorPH Payroll System!\n\n" +
+                            "User: " + username + "\n" +
+                            "Role: " + userRole + "\n" +
+                            "Login Time: " + new java.util.Date();
+
+                    JOptionPane.showMessageDialog(null, welcomeMessage,
+                            "Login Successful", JOptionPane.INFORMATION_MESSAGE);
+
+                    // Open main dashboard
+                    new MainDashboard().setVisible(true);
+
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null,
+                            "Error opening dashboard: " + ex.getMessage() +
+                                    "\n\nPlease restart the application.",
+                            "Application Error", JOptionPane.ERROR_MESSAGE);
+                    System.exit(1);
                 }
             }
         });
@@ -242,55 +277,174 @@ public class Login extends JFrame implements ActionListener, KeyListener {
         timer.start();
     }
 
-    private void clearFields() {
-        usernameField.setText("");
-        passwordField.setText("");
-        statusLabel.setText(" ");
-        usernameField.requestFocus();
+    // Handle failed login
+    private void handleFailedLogin() {
+        tries++;
+        int remainingTries = MAX_TRIES - tries;
+
+        String message;
+        if (remainingTries > 0) {
+            message = "Invalid username or password! " + remainingTries + " attempt(s) remaining.";
+        } else {
+            message = "Invalid credentials! Maximum attempts reached.";
+        }
+
+        showMessage(message, Color.RED);
+        passwordBox.setText(""); // Clear password
+        passwordBox.requestFocus();
+        loginButton.setEnabled(true);
+
+        if (remainingTries <= 0) {
+            disableLoginControls();
+        }
     }
 
-    private void exitApplication() {
-        int result = JOptionPane.showConfirmDialog(
-                this,
-                "Are you sure you want to exit?",
-                "Confirm Exit",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
-        );
+    // Handle login exceptions
+    private void handleLoginException(Exception e) {
+        System.err.println("Login error: " + e.getMessage());
+        e.printStackTrace();
 
-        if (result == JOptionPane.YES_OPTION) {
+        showMessage("Login error occurred. Please try again.", Color.RED);
+        loginButton.setEnabled(true);
+
+        // Log the error for debugging
+        JOptionPane.showMessageDialog(this,
+                "An unexpected error occurred during login.\n" +
+                        "Error: " + e.getMessage() + "\n\n" +
+                        "Please contact system administrator if this persists.",
+                "Login Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    // Get user role from login file
+    private String getUserRole(String username) {
+        try {
+            java.util.List<String[]> logins = EmployeeCSVReader.readLoginCredentials();
+            for (String[] login : logins) {
+                if (login.length >= 3 && login[0].equals(username)) {
+                    return login[2]; // Role is in the third column
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Could not get user role: " + e.getMessage());
+        }
+        return "User"; // Default role
+    }
+
+    // Disable login controls
+    private void disableLoginControls() {
+        usernameBox.setEnabled(false);
+        passwordBox.setEnabled(false);
+        loginButton.setEnabled(false);
+    }
+
+    // Show a message to the user
+    private void showMessage(String message, Color color) {
+        messageLabel.setText(message);
+        messageLabel.setForeground(color);
+    }
+
+    // Overloaded method for backward compatibility
+    private void showMessage(String message) {
+        showMessage(message, Color.RED);
+    }
+
+    // Exit application with confirmation
+    private void exitApplication() {
+        int choice = JOptionPane.showConfirmDialog(this,
+                "Are you sure you want to exit the MotorPH Payroll System?",
+                "Confirm Exit", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+        if (choice == JOptionPane.YES_OPTION) {
             System.exit(0);
         }
     }
 
-    private void showStatus(String message, Color color) {
-        statusLabel.setText(message);
-        statusLabel.setForeground(color);
-    }
+    // Check if files are ready with enhanced error handling
+    private void checkFiles() {
+        try {
+            // Print file locations for debugging
+            EmployeeCSVReader.printFileLocations();
 
-    @Override
-    public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-            performLogin();
-        } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-            clearFields();
+            if (EmployeeCSVReader.filesExist()) {
+                showMessage("System ready! Please enter your credentials.", Color.BLUE);
+                usernameBox.requestFocus();
+            } else {
+                showMessage("Setting up system files... Please wait...", Color.ORANGE);
+
+                // Create files and show progress
+                Timer timer = new Timer(2000, new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        try {
+                            EmployeeCSVReader.createFilesIfNeeded();
+                            if (EmployeeCSVReader.filesExist()) {
+                                showMessage("System ready! Please enter your credentials.", Color.BLUE);
+                                usernameBox.requestFocus();
+                            } else {
+                                showMessage("Warning: Some files missing, but login still works!", Color.ORANGE);
+                            }
+                        } catch (Exception ex) {
+                            showMessage("File setup warning - login may still work!", Color.ORANGE);
+                        }
+                    }
+                });
+                timer.setRepeats(false);
+                timer.start();
+            }
+
+        } catch (Exception e) {
+            System.err.println("File check error: " + e.getMessage());
+            showMessage("File setup warning - but login should still work!", Color.ORANGE);
         }
     }
 
-    @Override
-    public void keyTyped(KeyEvent e) {
-        // Clear status when user starts typing
-        if (statusLabel.getForeground() == Color.RED) {
-            statusLabel.setText(" ");
-        }
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {}
-
+    // Main method to start the program
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new Login().setVisible(true);
+        // Print startup information
+        System.out.println("=== STARTING MOTORPH PAYROLL SYSTEM ===");
+        System.out.println("Java Version: " + System.getProperty("java.version"));
+        System.out.println("Operating System: " + System.getProperty("os.name"));
+        System.out.println("Working Directory: " + System.getProperty("user.dir"));
+        System.out.println("User: " + System.getProperty("user.name"));
+        System.out.println("No external libraries needed!");
+        System.out.println("=======================================");
+
+        // Set system look and feel for better appearance
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            System.out.println("Could not set system look and feel: " + e.getMessage());
+        }
+
+        // Start the GUI with proper exception handling
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    System.out.println("Creating login window...");
+                    Login loginWindow = new Login();
+                    loginWindow.setVisible(true);
+                    System.out.println("Login window created successfully!");
+
+                } catch (Exception e) {
+                    System.err.println("FATAL ERROR: " + e.getMessage());
+                    e.printStackTrace();
+
+                    // Show error dialog
+                    String errorMessage = "Failed to start MotorPH Payroll System:\n\n" +
+                            "Error: " + e.getMessage() + "\n\n" +
+                            "Please check:\n" +
+                            "1. Java is properly installed\n" +
+                            "2. You have write permissions in current folder\n" +
+                            "3. No other instance is running\n\n" +
+                            "Contact IT support if problem persists.";
+
+                    JOptionPane.showMessageDialog(null, errorMessage,
+                            "Startup Error", JOptionPane.ERROR_MESSAGE);
+
+                    System.exit(1);
+                }
+            }
         });
+
+        System.out.println("Main method finished - GUI should be starting...");
     }
 }
